@@ -1,0 +1,25 @@
+# Build output
+build/
+build_release/
+
+# ONNX model (large binary)
+models/*.onnx
+
+# Saved frames
+*.jpg
+*.png
+
+# VSCode local settings
+.vscode/settings.json
+
+# CMake user files
+CMakeUserPresets.json
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# MSYS2 / MinGW object files
+*.o
+*.obj
+*.exe
