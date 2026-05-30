@@ -1,0 +1,50 @@
+[
+{
+  "directory": "D:/repo/perception_pipeline/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\c++.exe -ID:/repo/perception_pipeline/include -isystem C:/msys64/ucrt64/include/opencv4 -g -std=gnu++17 -Wall -Wextra -o CMakeFiles\\perception_pipeline.dir\\src\\main.cpp.obj -c D:\\repo\\perception_pipeline\\src\\main.cpp",
+  "file": "D:/repo/perception_pipeline/src/main.cpp",
+  "output": "D:/repo/perception_pipeline/build/CMakeFiles/perception_pipeline.dir/src/main.cpp.obj"
+},
+{
+  "directory": "D:/repo/perception_pipeline/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\c++.exe -ID:/repo/perception_pipeline/include -isystem C:/msys64/ucrt64/include/opencv4 -g -std=gnu++17 -Wall -Wextra -o CMakeFiles\\perception_pipeline.dir\\src\\calibration\\calibration.cpp.obj -c D:\\repo\\perception_pipeline\\src\\calibration\\calibration.cpp",
+  "file": "D:/repo/perception_pipeline/src/calibration/calibration.cpp",
+  "output": "D:/repo/perception_pipeline/build/CMakeFiles/perception_pipeline.dir/src/calibration/calibration.cpp.obj"
+},
+{
+  "directory": "D:/repo/perception_pipeline/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\c++.exe -ID:/repo/perception_pipeline/include -isystem C:/msys64/ucrt64/include/opencv4 -g -std=gnu++17 -Wall -Wextra -o CMakeFiles\\perception_pipeline.dir\\src\\preprocess\\preprocess.cpp.obj -c D:\\repo\\perception_pipeline\\src\\preprocess\\preprocess.cpp",
+  "file": "D:/repo/perception_pipeline/src/preprocess/preprocess.cpp",
+  "output": "D:/repo/perception_pipeline/build/CMakeFiles/perception_pipeline.dir/src/preprocess/preprocess.cpp.obj"
+},
+{
+  "directory": "D:/repo/perception_pipeline/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\c++.exe -ID:/repo/perception_pipeline/include -isystem C:/msys64/ucrt64/include/opencv4 -g -std=gnu++17 -Wall -Wextra -o CMakeFiles\\perception_pipeline.dir\\src\\depth\\depth_estimator.cpp.obj -c D:\\repo\\perception_pipeline\\src\\depth\\depth_estimator.cpp",
+  "file": "D:/repo/perception_pipeline/src/depth/depth_estimator.cpp",
+  "output": "D:/repo/perception_pipeline/build/CMakeFiles/perception_pipeline.dir/src/depth/depth_estimator.cpp.obj"
+},
+{
+  "directory": "D:/repo/perception_pipeline/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\c++.exe -ID:/repo/perception_pipeline/include -isystem C:/msys64/ucrt64/include/opencv4 -g -std=gnu++17 -Wall -Wextra -o CMakeFiles\\perception_pipeline.dir\\src\\detector\\detector.cpp.obj -c D:\\repo\\perception_pipeline\\src\\detector\\detector.cpp",
+  "file": "D:/repo/perception_pipeline/src/detector/detector.cpp",
+  "output": "D:/repo/perception_pipeline/build/CMakeFiles/perception_pipeline.dir/src/detector/detector.cpp.obj"
+},
+{
+  "directory": "D:/repo/perception_pipeline/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\c++.exe -ID:/repo/perception_pipeline/include -isystem C:/msys64/ucrt64/include/opencv4 -g -std=gnu++17 -Wall -Wextra -o CMakeFiles\\perception_pipeline.dir\\src\\tracker\\kalman_tracker.cpp.obj -c D:\\repo\\perception_pipeline\\src\\tracker\\kalman_tracker.cpp",
+  "file": "D:/repo/perception_pipeline/src/tracker/kalman_tracker.cpp",
+  "output": "D:/repo/perception_pipeline/build/CMakeFiles/perception_pipeline.dir/src/tracker/kalman_tracker.cpp.obj"
+},
+{
+  "directory": "D:/repo/perception_pipeline/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\c++.exe -ID:/repo/perception_pipeline/include -isystem C:/msys64/ucrt64/include/opencv4 -g -std=gnu++17 -Wall -Wextra -o CMakeFiles\\perception_pipeline.dir\\src\\fusion\\fusion.cpp.obj -c D:\\repo\\perception_pipeline\\src\\fusion\\fusion.cpp",
+  "file": "D:/repo/perception_pipeline/src/fusion/fusion.cpp",
+  "output": "D:/repo/perception_pipeline/build/CMakeFiles/perception_pipeline.dir/src/fusion/fusion.cpp.obj"
+},
+{
+  "directory": "D:/repo/perception_pipeline/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\c++.exe -ID:/repo/perception_pipeline/include -isystem C:/msys64/ucrt64/include/opencv4 -g -std=gnu++17 -Wall -Wextra -o CMakeFiles\\perception_pipeline.dir\\src\\renderer\\renderer.cpp.obj -c D:\\repo\\perception_pipeline\\src\\renderer\\renderer.cpp",
+  "file": "D:/repo/perception_pipeline/src/renderer/renderer.cpp",
+  "output": "D:/repo/perception_pipeline/build/CMakeFiles/perception_pipeline.dir/src/renderer/renderer.cpp.obj"
+}
+]

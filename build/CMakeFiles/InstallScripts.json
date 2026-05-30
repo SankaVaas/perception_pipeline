@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/repo/perception_pipeline/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
