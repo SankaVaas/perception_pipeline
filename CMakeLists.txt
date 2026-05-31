@@ -5,8 +5,23 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# ── OpenCV ────────────────────────────────────────────────────────────────────
 find_package(OpenCV REQUIRED)
 
+# ── ONNX Runtime ──────────────────────────────────────────────────────────────
+set(ONNXRUNTIME_ROOT "/d/onnxruntime/onnxruntime-win-x64-1.19.2" CACHE PATH "ONNX Runtime root")
+
+if(EXISTS "${ONNXRUNTIME_ROOT}/include/onnxruntime_cxx_api.h")
+    message(STATUS "ONNX Runtime found at: ${ONNXRUNTIME_ROOT}")
+    set(HAS_ONNX TRUE)
+    set(ORT_INCLUDE "${ONNXRUNTIME_ROOT}/include")
+    set(ORT_LIB     "${ONNXRUNTIME_ROOT}/lib/onnxruntime.lib")
+else()
+    message(WARNING "ONNX Runtime not found - detector will use stub mode")
+    set(HAS_ONNX FALSE)
+endif()
+
+# ── Sources ───────────────────────────────────────────────────────────────────
 set(PIPELINE_SOURCES
     src/main.cpp
     src/calibration/calibration.cpp
@@ -29,6 +44,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${OpenCV_LIBS}
 )
 
+if(HAS_ONNX)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${ORT_INCLUDE})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${ORT_LIB})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_ONNX)
+endif()
+
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -36,4 +57,5 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 message(STATUS "OpenCV version : ${OpenCV_VERSION}")
+message(STATUS "ONNX Runtime   : ${HAS_ONNX}")
 message(STATUS "Build type     : ${CMAKE_BUILD_TYPE}")
