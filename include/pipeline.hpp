@@ -1,22 +1,30 @@
 #pragma once
+
 #include <opencv2/opencv.hpp>
 #include <string>
 #include <vector>
 #include <chrono>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
 
 namespace pipeline {
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Core data types
+// ─────────────────────────────────────────────────────────────────────────────
+
 struct Detection {
-    int         class_id    = -1;
-    float       confidence  = 0.f;
+    int         class_id   = -1;
+    float       confidence = 0.f;
     cv::Rect    bbox;
     cv::Point3f position_3d;
 };
 
 struct Track {
-    int         track_id    = -1;
-    int         age         = 0;
-    int         hits        = 0;
+    int         track_id = -1;
+    int         age      = 0;
+    int         hits     = 0;
     Detection   last_det;
     cv::Point3f velocity_3d;
 };
@@ -32,8 +40,8 @@ struct FrameTimings {
 };
 
 struct CameraIntrinsics {
-    cv::Mat camera_matrix;
-    cv::Mat dist_coeffs;
+    cv::Mat  camera_matrix;
+    cv::Mat  dist_coeffs;
     cv::Size image_size;
 };
 
@@ -44,21 +52,48 @@ struct StereoCalibration {
 };
 
 struct PipelineConfig {
-    int    camera_id       = 0;
-    int    frame_width     = 640;
-    int    frame_height    = 480;
-    double target_fps      = 30.0;
-    std::string model_path = "models/yolov8n.onnx";
-    float  conf_threshold  = 0.45f;
-    float  nms_threshold   = 0.50f;
-    int    input_size      = 640;
-    int    max_age         = 10;
-    int    min_hits        = 3;
-    bool   show_depth_map  = true;
-    bool   show_edges      = false;
-    bool   show_hog        = false;
+    int         camera_id      = 0;
+    int         frame_width    = 640;
+    int         frame_height   = 480;
+    double      target_fps     = 30.0;
+    std::string model_path     = "models/yolov8n.onnx";
+    float       conf_threshold = 0.45f;
+    float       nms_threshold  = 0.50f;
+    int         input_size     = 640;
+    int         max_age        = 10;
+    int         min_hits       = 3;
+    bool        show_depth_map = true;
+    bool        show_edges     = false;
+    bool        show_hog       = false;
 };
 
+// Depth-assisted fused pose
+struct FusedPose {
+    cv::Vec3d   rvec;
+    cv::Vec3d   tvec;
+    cv::Mat     R;
+    double      depth_stereo_m  = 0;
+    double      depth_pnp_m     = 0;
+    double      depth_error_m   = 0;
+    double      yaw_deg         = 0;
+    double      pitch_deg       = 0;
+    double      roll_deg        = 0;
+    cv::Point3d position_cam;
+    bool        valid           = false;
+};
+
+// Data passed from inference thread → render thread
+struct InferenceResult {
+    cv::Mat                frame;
+    cv::Mat                depth_vis;
+    std::vector<Detection> detections;
+    std::vector<Track>     tracks;
+    FrameTimings           timings;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stopwatch
+// ─────────────────────────────────────────────────────────────────────────────
 class Stopwatch {
 public:
     void start() { t0_ = std::chrono::high_resolution_clock::now(); }
@@ -70,19 +105,46 @@ private:
     std::chrono::high_resolution_clock::time_point t0_;
 };
 
-} // namespace pipeline
+// ─────────────────────────────────────────────────────────────────────────────
+// Thread-safe latest-frame buffer
+// ─────────────────────────────────────────────────────────────────────────────
+template<typename T>
+class LatestFrameBuffer {
+public:
+    void push(T value) {
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            data_     = std::move(value);
+            has_data_ = true;
+        }
+        cv_.notify_one();
+    }
 
-// Depth-assisted pose — combines solvePnP with stereo depth
-struct FusedPose {
-    cv::Vec3d    rvec;           // rotation (Rodrigues)
-    cv::Vec3d    tvec;           // translation — tvec[2] replaced by stereo Z
-    cv::Mat      R;              // 3x3 rotation matrix
-    double       depth_stereo_m; // Z from stereo (authoritative)
-    double       depth_pnp_m;    // Z from PnP (for comparison)
-    double       depth_error_m;  // |stereo - pnp| — calibration quality metric
-    double       yaw_deg;
-    double       pitch_deg;
-    double       roll_deg;
-    cv::Point3d  position_cam;   // (X,Y,Z) in camera frame, Z from stereo
-    bool         valid = false;
+    bool pop(T& out, int timeout_ms = 100) {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (!cv_.wait_for(lock,
+                std::chrono::milliseconds(timeout_ms),
+                [this]{ return has_data_ || stopped_; }))
+            return false;
+        if (stopped_ && !has_data_) return false;
+        out       = std::move(data_);
+        has_data_ = false;
+        return true;
+    }
+
+    void stop() {
+        { std::lock_guard<std::mutex> lock(mutex_); stopped_ = true; }
+        cv_.notify_all();
+    }
+
+    bool is_stopped() const { return stopped_; }
+
+private:
+    T                       data_;
+    bool                    has_data_ = false;
+    bool                    stopped_  = false;
+    std::mutex              mutex_;
+    std::condition_variable cv_;
 };
+
+} // namespace pipeline

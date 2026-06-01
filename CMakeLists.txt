@@ -5,10 +5,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# ── OpenCV ────────────────────────────────────────────────────────────────────
 find_package(OpenCV REQUIRED)
+find_package(Threads REQUIRED)
 
-# ── ONNX Runtime ──────────────────────────────────────────────────────────────
 set(ONNXRUNTIME_ROOT "/d/onnxruntime/onnxruntime-win-x64-1.19.2" CACHE PATH "ONNX Runtime root")
 
 if(EXISTS "${ONNXRUNTIME_ROOT}/include/onnxruntime_cxx_api.h")
@@ -21,7 +20,6 @@ else()
     set(HAS_ONNX FALSE)
 endif()
 
-# ── Sources ───────────────────────────────────────────────────────────────────
 set(PIPELINE_SOURCES
     src/main.cpp
     src/calibration/calibration.cpp
@@ -31,6 +29,9 @@ set(PIPELINE_SOURCES
     src/tracker/kalman_tracker.cpp
     src/fusion/fusion.cpp
     src/renderer/renderer.cpp
+    src/optical_flow/optical_flow.cpp
+    src/pose/pose_estimator.cpp
+    src/pipeline/threaded_pipeline.cpp
 )
 
 add_executable(${PROJECT_NAME} ${PIPELINE_SOURCES})
@@ -42,6 +43,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${OpenCV_LIBS}
+    Threads::Threads
 )
 
 if(HAS_ONNX)
@@ -51,10 +53,8 @@ if(HAS_ONNX)
 endif()
 
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
-
 set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
-)
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 message(STATUS "OpenCV version : ${OpenCV_VERSION}")
 message(STATUS "ONNX Runtime   : ${HAS_ONNX}")
