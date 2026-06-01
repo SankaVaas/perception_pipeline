@@ -3,40 +3,17 @@
 
 namespace pipeline {
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 6DOF Pose Estimation using solvePnP
-//
-// Given:
-//   - 4 corners of a detected bounding box (2D image points)
-//   - Known real-world size of the object (3D model points)
-//   - Camera intrinsic matrix K
-//
-// Solves the Perspective-n-Point (PnP) problem:
-//   find R (rotation) and t (translation) such that:
-//   x_image = K * [R | t] * X_world
-//
-// Output: rvec (rotation vector, Rodrigues) + tvec (translation in metres)
-//   - tvec[2] = depth (Z distance to object centre)
-//   - rvec converted to rotation matrix gives object orientation
-//
-// Robotics uses:
-//   - Robot arm: "the cup is 0.3m ahead, tilted 15 degrees" → grasp planning
-//   - Navigation: "the door is 2m away at -5 degrees yaw"
-//   - AR: overlay 3D model exactly on detected object
-// ─────────────────────────────────────────────────────────────────────────────
-
 struct PoseResult {
-    cv::Vec3d rvec;         // rotation vector (Rodrigues)
-    cv::Vec3d tvec;         // translation vector in metres
-    cv::Mat   R;            // 3x3 rotation matrix
-    double    distance_m;   // Euclidean distance to object centre
-    double    yaw_deg;      // yaw angle in degrees
-    double    pitch_deg;    // pitch angle in degrees
-    double    roll_deg;     // roll angle in degrees
-    bool      valid = false;
+    cv::Vec3d rvec;
+    cv::Vec3d tvec;
+    cv::Mat   R;
+    double    distance_m  = 0;
+    double    yaw_deg     = 0;
+    double    pitch_deg   = 0;
+    double    roll_deg    = 0;
+    bool      valid       = false;
 };
 
-// Known object sizes (width x height in metres)
 struct ObjectSize {
     double width_m;
     double height_m;
@@ -46,32 +23,42 @@ class PoseEstimator {
 public:
     explicit PoseEstimator(const CameraIntrinsics& intrinsics);
 
-    // Estimate pose from a bounding box.
-    // object_size: real-world width/height of this object class in metres.
-    // Returns PoseResult with valid=false if estimation fails.
+    // PnP from bbox + assumed object size
     PoseResult estimate(const cv::Rect& bbox,
                         const ObjectSize& object_size) const;
 
-    // Draw pose axes on the frame (X=red, Y=green, Z=blue)
-    void draw_axes(cv::Mat& frame,
-                   const PoseResult& pose,
-                   const cv::Rect& bbox,
-                   float axis_length = 0.1f) const;
+    // ── NEW: Depth-fused pose ─────────────────────────────────────────────
+    // Uses stereo Z to back-compute the real object size, then runs PnP.
+    // This removes the dependency on assumed object dimensions entirely.
+    // stereo_z: depth in metres from the disparity map at the bbox centre
+    // ──────────────────────────────────────────────────────────────────────
+    FusedPose estimate_fused(const cv::Rect& bbox,
+                             float stereo_z) const;
 
-    // Draw pose info as text overlay
-    void draw_info(cv::Mat& frame,
-                   const PoseResult& pose,
+    void draw_axes(cv::Mat& frame, const PoseResult& pose,
+                   const cv::Rect& bbox, float axis_length = 0.1f) const;
+
+    void draw_fused_axes(cv::Mat& frame, const FusedPose& pose,
+                         float axis_length = 0.1f) const;
+
+    void draw_info(cv::Mat& frame, const PoseResult& pose,
                    const cv::Rect& bbox) const;
 
-    // Update intrinsics (e.g. after calibration loads)
-    void set_intrinsics(const CameraIntrinsics& intrinsics);
+    void draw_fused_info(cv::Mat& frame, const FusedPose& pose,
+                         const cv::Rect& bbox) const;
 
-    // Default object sizes by COCO class id (approximate, in metres)
+    void set_intrinsics(const CameraIntrinsics& intrinsics);
     static ObjectSize default_size(int class_id);
 
 private:
+    PoseResult run_pnp(const cv::Rect& bbox,
+                       double obj_w, double obj_h) const;
+    void extract_euler(const cv::Mat& R,
+                       double& yaw, double& pitch, double& roll) const;
+
     cv::Mat camera_matrix_;
     cv::Mat dist_coeffs_;
+    double  fx_ = 1, fy_ = 1, cx_ = 0, cy_ = 0; // cached for back-projection
 };
 
 } // namespace pipeline

@@ -71,3 +71,18 @@ private:
 };
 
 } // namespace pipeline
+
+// Depth-assisted pose — combines solvePnP with stereo depth
+struct FusedPose {
+    cv::Vec3d    rvec;           // rotation (Rodrigues)
+    cv::Vec3d    tvec;           // translation — tvec[2] replaced by stereo Z
+    cv::Mat      R;              // 3x3 rotation matrix
+    double       depth_stereo_m; // Z from stereo (authoritative)
+    double       depth_pnp_m;    // Z from PnP (for comparison)
+    double       depth_error_m;  // |stereo - pnp| — calibration quality metric
+    double       yaw_deg;
+    double       pitch_deg;
+    double       roll_deg;
+    cv::Point3d  position_cam;   // (X,Y,Z) in camera frame, Z from stereo
+    bool         valid = false;
+};
